@@ -8,11 +8,16 @@ const App = () => {
     const [isHistoryVisible, setHistoryVisible] = useState(false);
     const [theme, setTheme] = useState("dark");
     const [messages, setMessages] = useState<{ sender: string; text: string }[]>([]);
+    const [chatHistory, setChatHistory] = useState<
+        { id: number; name: string; messages: { sender: string; text: string }[] }[]
+    >([]);
     const [isBotThinking, setIsBotThinking] = useState(false);
-    const [chatHistory, setChatHistory] = useState<{ id: number; name: string }[]>([]);
-    const [currentChatName, setCurrentChatName] = useState<string>("");
 
-    // Load chat history from localStorage
+    useEffect(() => {
+        document.documentElement.className = theme;
+        document.body.style.backgroundColor = theme === "light" ? "#ffffff" : "#181818";
+    }, [theme]);
+
     useEffect(() => {
         const storedHistory = localStorage.getItem("chatHistory");
         if (storedHistory) {
@@ -20,18 +25,9 @@ const App = () => {
         }
     }, []);
 
-    // Save chat history to localStorage whenever it changes
     useEffect(() => {
         localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
     }, [chatHistory]);
-
-    useEffect(() => {
-        // Apply theme class to the root element
-        document.documentElement.className = theme;
-
-        // Optional: change background color dynamically based on theme
-        document.body.style.backgroundColor = theme === "light" ? "#ffffff" : "#181818";
-    }, [theme]);
 
     const toggleTheme = () => {
         setTheme((prev) => (prev === "light" ? "dark" : "light"));
@@ -40,37 +36,52 @@ const App = () => {
     const handleSendMessage = (text: string) => {
         if (text.trim() === "") return;
 
-        // Add user message to the chat
         const userMessage = { sender: "user", text };
-        setMessages((prevMessages) => [...prevMessages, userMessage]);
+        setMessages((prevMessages) => {
+            // Handle new chat creation
+            if (prevMessages.length === 0) {
+                const chatName = text.split(" ").slice(0, 2).join(" ");
+                const newChat = { id: Date.now(), name: chatName, messages: [userMessage] };
+                setChatHistory((prevHistory) => [...prevHistory, newChat]);
+            } else {
+                // Update messages in the current chat
+                setChatHistory((prevHistory) =>
+                    prevHistory.map((chat) =>
+                        chat.id === prevHistory[prevHistory.length - 1].id
+                            ? { ...chat, messages: [...chat.messages, userMessage] }
+                            : chat
+                    )
+                );
+            }
+            return [...prevMessages, userMessage];
+        });
 
-        // Bot thinking state
         setIsBotThinking(true);
-
-        // Simulate bot thinking for 1 second
         setTimeout(() => {
             const botResponse = { sender: "bot", text: "I'm thinking... Here's your answer!" };
-            setMessages((prevMessages) => [...prevMessages, botResponse]);
-            setIsBotThinking(false); // Bot stops thinking after response
+            setMessages((prevMessages) => {
+                setChatHistory((prevHistory) =>
+                    prevHistory.map((chat) =>
+                        chat.id === prevHistory[prevHistory.length - 1].id
+                            ? { ...chat, messages: [...chat.messages, botResponse] }
+                            : chat
+                    )
+                );
+                return [...prevMessages, botResponse];
+            });
+            setIsBotThinking(false);
         }, 1000);
     };
 
-    const handleCreateNewChat = () => {
-        setMessages([]); // Clear the current chat
-        setCurrentChatName(""); // Reset the current chat name
-
-        // Set the new chat name based on the first two words of the first message
-        const newChatName = messages.length > 0 ? getChatName(messages[0].text) : "New Chat";
-        setCurrentChatName(newChatName);
-
-        // Add the new chat to chat history
-        const newChat = { id: Date.now(), name: newChatName };
-        setChatHistory((prevHistory) => [...prevHistory, newChat]);
+    const handleNewChat = () => {
+        setMessages([]);
     };
 
-    const getChatName = (message: string) => {
-        const words = message.split(" ");
-        return words.length > 1 ? `${words[0]} ${words[1]}` : words[0];
+    const handleSelectChat = (chatId: number) => {
+        const selectedChat = chatHistory.find((chat) => chat.id === chatId);
+        if (selectedChat) {
+            setMessages(selectedChat.messages);
+        }
     };
 
     return (
@@ -79,14 +90,21 @@ const App = () => {
             <ChatHistory
                 isVisible={isHistoryVisible}
                 onToggle={() => setHistoryVisible(!isHistoryVisible)}
+                chatHistory={chatHistory}
+                onSelectChat={handleSelectChat}
             />
 
             {/* Main Chat Area */}
             <div className="flex-grow flex flex-col px-8 md:px-16 lg:px-80 py-6 space-y-6">
-                {/* Header */}
                 <header className="p-4 flex justify-between items-center bg-bg-secondary shadow-lg rounded-lg transition-colors duration-300">
                     <h1 className="text-xl font-bold text-primary">Chat Assistant</h1>
                     <div className="flex items-center space-x-4">
+                        <button
+                            onClick={handleNewChat}
+                            className="px-4 py-2 bg-green-500 text-white rounded-lg shadow-md hover:bg-green-600 transition-all duration-200"
+                        >
+                            New Chat
+                        </button>
                         <button
                             onClick={toggleTheme}
                             className="flex items-center p-2 bg-gray-300 text-gray-800 rounded-lg shadow-md hover:bg-gray-400 dark:bg-gray-600 dark:text-gray-100 transition-all duration-200"
@@ -105,16 +123,7 @@ const App = () => {
                     <ChatBox messages={messages} isBotThinking={isBotThinking} />
                 </div>
 
-                {/* Message Input */}
                 <MessageInput onSend={handleSendMessage} />
-
-                {/* Create New Chat Button */}
-                <button
-                    onClick={handleCreateNewChat}
-                    className="mt-4 p-3 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition-all duration-200"
-                >
-                    Create New Chat
-                </button>
             </div>
         </div>
     );

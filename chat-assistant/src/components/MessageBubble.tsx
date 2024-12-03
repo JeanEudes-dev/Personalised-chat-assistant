@@ -1,5 +1,6 @@
 import React from "react";
 import { FaUserCircle, FaRobot } from "react-icons/fa";
+import { motion } from "framer-motion";
 
 const MessageBubble = ({
     sender,
@@ -12,36 +13,64 @@ const MessageBubble = ({
 }) => {
     const isUser = sender === "user";
 
+    // Define animation variants
+    const bubbleVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: { opacity: 1, y: 0 },
+    };
+
     return (
-        <div className={`flex items-center ${isUser ? "justify-end" : "justify-start"} my-4`}>
+        <motion.div
+            className={`flex items-center ${isUser ? "justify-end" : "justify-start"} my-2`}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            variants={bubbleVariants}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+        >
             {/* Avatar */}
-            {!isUser && (
-                <FaRobot className="text-secondary w-10 h-10 mr-3 shadow-md" />
-            )}
+            {!isUser && <FaRobot className="text-secondary w-8 h-8 mr-3 shadow-md" />}
 
             {/* Message Bubble or Typing Indicator */}
-            <div
-                className={`relative max-w-xs md:max-w-md lg:max-w-lg p-4 rounded-lg shadow-lg ${isUser
-                    ? "bg-gradient-to-r from-primary to-blue-400 text-white"
-                    : "bg-gradient-to-r from-gray-100 to-gray-300 text-gray-900"
+            <motion.div
+                className={`relative max-w-xs md:max-w-md lg:max-w-lg p-3 rounded-lg shadow-lg backdrop-blur-md ${isUser
+                    ? "bg-gradient-to-r from-blue-500/30 to-blue-300/30 "
+                    : "bg-gradient-to-r from-gray-200/30 to-gray-100/30 "
                     }`}
+                style={{
+                    border: isUser ? "1px solid rgba(255, 255, 255, 0.4)" : "1px solid rgba(0, 0, 0, 0.2)",
+                    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                }}
+                initial={{ scale: 0.9 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
             >
                 {isTyping ? (
-                    <div className="flex space-x-2">
-                        <span className="dot bg-gray-500 animate-pulse"></span>
-                        <span className="dot bg-gray-500 animate-pulse"></span>
-                        <span className="dot bg-gray-500 animate-pulse"></span>
+                    <div className="flex space-x-1">
+                        <motion.span
+                            className="dot bg-gray-500 rounded-full w-2 h-2"
+                            animate={{ opacity: [0.4, 1, 0.4] }}
+                            transition={{ duration: 1, repeat: Infinity }}
+                        ></motion.span>
+                        <motion.span
+                            className="dot bg-gray-500 rounded-full w-2 h-2"
+                            animate={{ opacity: [0.4, 1, 0.4] }}
+                            transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
+                        ></motion.span>
+                        <motion.span
+                            className="dot bg-gray-500 rounded-full w-2 h-2"
+                            animate={{ opacity: [0.4, 1, 0.4] }}
+                            transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
+                        ></motion.span>
                     </div>
                 ) : (
-                    <p className="leading-relaxed">{text}</p>
+                    <p className="text-sm leading-snug">{text}</p>
                 )}
-            </div>
+            </motion.div>
 
             {/* User Avatar */}
-            {isUser && (
-                <FaUserCircle className="text-primary w-10 h-10 ml-3 shadow-md" />
-            )}
-        </div>
+            {isUser && <FaUserCircle className="text-primary w-8 h-8 ml-3 shadow-md" />}
+        </motion.div>
     );
 };
 

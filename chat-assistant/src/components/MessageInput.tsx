@@ -15,7 +15,7 @@ const MessageInput = ({ onSend }: { onSend: (text: string) => void }) => {
     return (
         <form
             onSubmit={handleSend}
-            className="flex items-center mt-4 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 p-3 rounded-lg shadow-md"
+            className="fixed bottom-0 left-1/4 w-1/2 flex items-center bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 p-3 shadow-md"
         >
             {/* Input Field */}
             <input
