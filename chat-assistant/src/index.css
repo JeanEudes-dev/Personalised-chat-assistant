@@ -2,32 +2,107 @@
 @tailwind components;
 @tailwind utilities;
 
-.dot {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  margin: 0 2px;
-  background-color: white;
-  border-radius: 50%;
-  animation: dots 1.2s infinite;
+:root {
+  --bg-main: #f0f0f0;
+  --bg-secondary: #ffffff;
+  --text-main: #333333;
+  --primary: #007bff;
+  --chat-bg: #fafafa;
 }
 
+/* Dark mode overrides */
+html.dark {
+  --bg-main: #181818;
+  --bg-secondary: #1f1f1f;
+  --text-main: #e0e0e0;
+  --primary: #4c9aff;
+  --chat-bg: #2a2a2a;
+}
+
+/* Apply these variables globally */
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+}
+
+/* Other specific elements */
+.bg-bg-main {
+  background-color: var(--bg-main);
+}
+.bg-bg-secondary {
+  background-color: var(--bg-secondary);
+}
+.text-text-main {
+  color: var(--text-main);
+}
+.bg-primary {
+  background-color: var(--primary);
+}
+
+/* Optional: Override the chat box background color */
+.bg-chat-box {
+  background-color: var(--chat-bg);
+}
+
+header,
+.chat-box {
+  background-color: var(--secondary-bg);
+  box-shadow: 0 4px 6px var(--shadow-color);
+}
+
+.dot {
+  height: 8px;
+  width: 8px;
+  border-radius: 50%;
+  animation: bounce 1.5s infinite ease-in-out;
+}
+.dot:nth-child(1) {
+  animation-delay: 0s;
+}
 .dot:nth-child(2) {
   animation-delay: 0.2s;
 }
-
 .dot:nth-child(3) {
   animation-delay: 0.4s;
 }
 
-@keyframes dots {
-  0%, 20% {
-      transform: translateY(0);
-  }
-  50% {
-      transform: translateY(-10px);
-  }
+@keyframes bounce {
+  0%,
+  80%,
   100% {
-      transform: translateY(0);
+    transform: scale(0);
   }
+  40% {
+    transform: scale(1);
+  }
+}
+
+button {
+  transition: all 0.3s ease-in-out;
+}
+li {
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+li:hover {
+  transform: scale(1.02);
+}
+
+/* Webkit Browsers */
+.flex-grow::-webkit-scrollbar {
+  width: 8px;
+}
+
+.flex-grow::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #4c9aff, #007aff);
+  border-radius: 4px;
+}
+
+.flex-grow::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #005bbb, #0050aa);
+}
+
+/* Firefox */
+.flex-grow {
+  scrollbar-width: thin;
+  scrollbar-color: #007aff #f0f0f0;
 }

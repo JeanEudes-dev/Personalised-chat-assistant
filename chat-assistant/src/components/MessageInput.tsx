@@ -1,32 +1,38 @@
 import React, { useState } from "react";
+import { IoIosSend } from "react-icons/io";
 
-const MessageInput = ({ onSend }: { onSend: (message: string) => void }) => {
+const MessageInput = ({ onSend }: { onSend: (text: string) => void }) => {
     const [input, setInput] = useState("");
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSend = (e: React.FormEvent) => {
         e.preventDefault();
         if (input.trim() === "") return;
-        onSend(input);
-        setInput("");
+        console.log("Sending message:", input); // Placeholder for send action
+        onSend(input); // Call the onSend prop function to handle the sending action
+        setInput(""); // Clear input field after sending the message
     };
 
     return (
         <form
-            onSubmit={handleSubmit}
-            className="p-4 bg-white shadow-md flex items-center"
+            onSubmit={handleSend}
+            className="flex items-center mt-4 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 p-3 rounded-lg shadow-md"
         >
+            {/* Input Field */}
             <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                className="flex-grow px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Type your message..."
+                className="flex-grow px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-gray-900 dark:text-gray-200 bg-white dark:bg-gray-800"
+                placeholder="Type a message..."
             />
+            {/* Send Button */}
             <button
                 type="submit"
-                className="ml-2 px-4 py-2 bg-blue-500 text-white rounded-lg"
+                className={`ml-3 p-3 bg-blue-800 text-white rounded-full shadow-md hover:bg-blue-400 transition-all ${input.trim() === "" ? "opacity-50 cursor-not-allowed" : ""}`}
+                aria-label="Send Message"
+                disabled={input.trim() === ""}
             >
-                Send
+                <IoIosSend size={20} />
             </button>
         </form>
     );

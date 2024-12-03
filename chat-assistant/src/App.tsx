@@ -2,111 +2,119 @@ import React, { useState, useEffect } from "react";
 import ChatBox from "./components/ChatBox";
 import MessageInput from "./components/MessageInput";
 import ChatHistory from "./components/ChatHistory";
-
-const LOCAL_STORAGE_KEY = "chatSessions";
-
-const loadSessions = () => {
-    const data = localStorage.getItem(LOCAL_STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
-};
-
-const saveSessions = (sessions: { id: string; name: string; messages: any[] }[]) => {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(sessions));
-};
+import { BsMoonStarsFill, BsSunFill } from "react-icons/bs";
 
 const App = () => {
-    const [sessions, setSessions] = useState<
-        { id: string; name: string; messages: { sender: string; text: string }[] }[]
-    >([]);
-    const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
     const [isHistoryVisible, setHistoryVisible] = useState(false);
-    const [isTyping, setIsTyping] = useState(false);
+    const [theme, setTheme] = useState("dark");
+    const [messages, setMessages] = useState<{ sender: string; text: string }[]>([]);
+    const [isBotThinking, setIsBotThinking] = useState(false);
+    const [chatHistory, setChatHistory] = useState<{ id: number; name: string }[]>([]);
+    const [currentChatName, setCurrentChatName] = useState<string>("");
 
-    // Load sessions on mount
+    // Load chat history from localStorage
     useEffect(() => {
-        const loadedSessions = loadSessions();
-        setSessions(loadedSessions);
-        if (loadedSessions.length > 0) setCurrentSessionId(loadedSessions[0].id);
+        const storedHistory = localStorage.getItem("chatHistory");
+        if (storedHistory) {
+            setChatHistory(JSON.parse(storedHistory));
+        }
     }, []);
 
-    // Save sessions whenever they change
+    // Save chat history to localStorage whenever it changes
     useEffect(() => {
-        saveSessions(sessions);
-    }, [sessions]);
+        localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
+    }, [chatHistory]);
 
-    // Get current session messages
-    const currentSession = sessions.find((s) => s.id === currentSessionId);
+    useEffect(() => {
+        // Apply theme class to the root element
+        document.documentElement.className = theme;
 
-    // Create a new session
-    const createNewSession = () => {
-        const newSession = {
-            id: Date.now().toString(),
-            name: `Chat ${sessions.length + 1}`,
-            messages: [],
-        };
-        setSessions([newSession, ...sessions]);
-        setCurrentSessionId(newSession.id);
+        // Optional: change background color dynamically based on theme
+        document.body.style.backgroundColor = theme === "light" ? "#ffffff" : "#181818";
+    }, [theme]);
+
+    const toggleTheme = () => {
+        setTheme((prev) => (prev === "light" ? "dark" : "light"));
     };
 
-    // Handle message send
-    const handleSend = (message: string) => {
-        if (!currentSessionId) return;
+    const handleSendMessage = (text: string) => {
+        if (text.trim() === "") return;
 
-        const updatedSessions = sessions.map((s) =>
-            s.id === currentSessionId
-                ? {
-                      ...s,
-                      messages: [...s.messages, { sender: "user", text: message }],
-                  }
-                : s
-        );
+        // Add user message to the chat
+        const userMessage = { sender: "user", text };
+        setMessages((prevMessages) => [...prevMessages, userMessage]);
 
-        setSessions(updatedSessions);
-        setIsTyping(true);
+        // Bot thinking state
+        setIsBotThinking(true);
 
+        // Simulate bot thinking for 1 second
         setTimeout(() => {
-            const botMessage = { sender: "bot", text: "Processing your message..." };
-            setSessions((prevSessions) =>
-                prevSessions.map((s) =>
-                    s.id === currentSessionId
-                        ? { ...s, messages: [...s.messages, botMessage] }
-                        : s
-                )
-            );
-            setIsTyping(false);
+            const botResponse = { sender: "bot", text: "I'm thinking... Here's your answer!" };
+            setMessages((prevMessages) => [...prevMessages, botResponse]);
+            setIsBotThinking(false); // Bot stops thinking after response
         }, 1000);
     };
 
+    const handleCreateNewChat = () => {
+        setMessages([]); // Clear the current chat
+        setCurrentChatName(""); // Reset the current chat name
+
+        // Set the new chat name based on the first two words of the first message
+        const newChatName = messages.length > 0 ? getChatName(messages[0].text) : "New Chat";
+        setCurrentChatName(newChatName);
+
+        // Add the new chat to chat history
+        const newChat = { id: Date.now(), name: newChatName };
+        setChatHistory((prevHistory) => [...prevHistory, newChat]);
+    };
+
+    const getChatName = (message: string) => {
+        const words = message.split(" ");
+        return words.length > 1 ? `${words[0]} ${words[1]}` : words[0];
+    };
+
     return (
-        <div className="h-screen flex relative">
+        <div className="min-h-screen flex bg-bg-main text-text-main transition-colors duration-300">
             {/* Chat History */}
             <ChatHistory
-                history={sessions.map((s) => ({ id: s.id, name: s.name }))}
-                onSelect={(id) => setCurrentSessionId(id)}
-                onToggle={() => setHistoryVisible(!isHistoryVisible)}
                 isVisible={isHistoryVisible}
+                onToggle={() => setHistoryVisible(!isHistoryVisible)}
             />
 
             {/* Main Chat Area */}
-            <div className="flex-grow flex flex-col">
+            <div className="flex-grow flex flex-col px-8 md:px-16 lg:px-80 py-6 space-y-6">
                 {/* Header */}
-                <div className="p-4 flex justify-between items-center bg-white shadow-md">
-                    <h1 className="text-xl font-bold">
-                        {currentSession?.name || "No Chat Selected"}
-                    </h1>
-                    <button
-                        onClick={createNewSession}
-                        className="px-4 py-2 bg-green-500 text-white rounded-lg"
-                    >
-                        New Chat
-                    </button>
+                <header className="p-4 flex justify-between items-center bg-bg-secondary shadow-lg rounded-lg transition-colors duration-300">
+                    <h1 className="text-xl font-bold text-primary">Chat Assistant</h1>
+                    <div className="flex items-center space-x-4">
+                        <button
+                            onClick={toggleTheme}
+                            className="flex items-center p-2 bg-gray-300 text-gray-800 rounded-lg shadow-md hover:bg-gray-400 dark:bg-gray-600 dark:text-gray-100 transition-all duration-200"
+                            aria-label="Toggle Theme"
+                        >
+                            {theme === "light" ? (
+                                <BsMoonStarsFill className="mr-2" />
+                            ) : (
+                                <BsSunFill className="mr-2" />
+                            )}
+                        </button>
+                    </div>
+                </header>
+
+                <div className="relative">
+                    <ChatBox messages={messages} isBotThinking={isBotThinking} />
                 </div>
 
-                {/* Chat Box */}
-                <ChatBox messages={currentSession?.messages || []} isTyping={isTyping} />
-
                 {/* Message Input */}
-                <MessageInput onSend={handleSend} />
+                <MessageInput onSend={handleSendMessage} />
+
+                {/* Create New Chat Button */}
+                <button
+                    onClick={handleCreateNewChat}
+                    className="mt-4 p-3 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition-all duration-200"
+                >
+                    Create New Chat
+                </button>
             </div>
         </div>
     );

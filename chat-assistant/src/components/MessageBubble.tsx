@@ -1,31 +1,47 @@
-import { FaUserCircle } from "react-icons/fa";
-import { motion } from "framer-motion";
+import React from "react";
+import { FaUserCircle, FaRobot } from "react-icons/fa";
 
-const MessageBubble = ({ sender, text }: { sender: string; text: string }) => {
+const MessageBubble = ({
+    sender,
+    text,
+    isTyping = false,
+}: {
+    sender: string;
+    text: string;
+    isTyping?: boolean;
+}) => {
     const isUser = sender === "user";
 
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className={`flex ${isUser ? "justify-end" : "justify-start"} my-2`}
-        >
+        <div className={`flex items-center ${isUser ? "justify-end" : "justify-start"} my-4`}>
+            {/* Avatar */}
             {!isUser && (
-                <FaUserCircle className="text-gray-500 mr-2 self-center" size={30} />
+                <FaRobot className="text-secondary w-10 h-10 mr-3 shadow-md" />
             )}
+
+            {/* Message Bubble or Typing Indicator */}
             <div
-                className={`p-3 rounded-lg text-white ${
-                    isUser ? "bg-blue-500" : "bg-gray-500"
-                }`}
-                style={{ maxWidth: "75%" }}
+                className={`relative max-w-xs md:max-w-md lg:max-w-lg p-4 rounded-lg shadow-lg ${isUser
+                    ? "bg-gradient-to-r from-primary to-blue-400 text-white"
+                    : "bg-gradient-to-r from-gray-100 to-gray-300 text-gray-900"
+                    }`}
             >
-                {text}
+                {isTyping ? (
+                    <div className="flex space-x-2">
+                        <span className="dot bg-gray-500 animate-pulse"></span>
+                        <span className="dot bg-gray-500 animate-pulse"></span>
+                        <span className="dot bg-gray-500 animate-pulse"></span>
+                    </div>
+                ) : (
+                    <p className="leading-relaxed">{text}</p>
+                )}
             </div>
+
+            {/* User Avatar */}
             {isUser && (
-                <FaUserCircle className="text-blue-500 ml-2 self-center" size={30} />
+                <FaUserCircle className="text-primary w-10 h-10 ml-3 shadow-md" />
             )}
-        </motion.div>
+        </div>
     );
 };
 
