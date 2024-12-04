@@ -12,7 +12,7 @@ exports.getAIResponse = async (req, res) => {
   const payload = {
     inputs: prompt,
     parameters: {
-      max_new_tokens: 150, // Limit response length
+      max_new_tokens: 200, // Limit response length
       return_full_text: false, // Avoid echoing the prompt
     },
   };
@@ -28,15 +28,27 @@ exports.getAIResponse = async (req, res) => {
       }
     );
 
-    // Extract the first paragraph
+    // Extract the generated text
     const generatedText = response.data[0]?.generated_text || "";
-    const firstParagraph =
-      generatedText
-        .split("\n") // Split by line breaks
-        .filter((line) => line.trim()) // Remove empty lines
-        .shift() || "I'm sorry, I couldn't process that."; // Get the first non-empty line
 
-    res.json({ sender: "bot", text: firstParagraph });
+    // Split into lines and find the first section before "User:" or "AI:"
+    const lines = generatedText.split("\n");
+    const result = [];
+
+    for (const line of lines) {
+      if (line.trim().startsWith("User:") || line.trim().startsWith("AI:")) {
+        break; // Stop collecting when reaching "User:" or "AI:"
+      }
+      result.push(line.trim());
+    }
+
+    // Join the collected lines as the final response
+    const firstParagraph = result.join(" ").trim();
+
+    res.json({
+      sender: "bot",
+      text: firstParagraph || "I'm sorry, I couldn't process that.",
+    });
   } catch (error) {
     console.error("Error fetching AI response:", error.message);
     res.status(500).json({ error: "Failed to fetch AI response" });

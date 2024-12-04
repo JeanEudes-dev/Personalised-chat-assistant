@@ -6,7 +6,7 @@ import { BsMoonStarsFill, BsSunFill } from "react-icons/bs";
 
 const App = () => {
     const [isHistoryVisible, setHistoryVisible] = useState(false);
-    const [theme, setTheme] = useState("dark");
+    const [theme, setTheme] = useState("light");
     const [messages, setMessages] = useState<{ sender: string; text: string }[]>([]);
     const [chatHistory, setChatHistory] = useState<
         { id: number; name: string; messages: { sender: string; text: string }[] }[]
@@ -149,7 +149,9 @@ const App = () => {
                 </header>
 
                 <div className="relative">
-                    <ChatBox messages={messages} isBotThinking={isBotThinking} />
+                    {messages.length > 0 &&
+                        <ChatBox messages={messages} isBotThinking={isBotThinking} />
+                    }
                 </div>
 
                 <MessageInput onSend={handleSendMessage} />
