@@ -33,7 +33,7 @@ const App = () => {
         setTheme((prev) => (prev === "light" ? "dark" : "light"));
     };
 
-    const handleSendMessage = (text: string) => {
+    const handleSendMessage = async (text: string) => {
         if (text.trim() === "") return;
 
         const userMessage = { sender: "user", text };
@@ -57,8 +57,22 @@ const App = () => {
         });
 
         setIsBotThinking(true);
-        setTimeout(() => {
-            const botResponse = { sender: "bot", text: "I'm thinking... Here's your answer!" };
+
+        try {
+            const response = await fetch("http://localhost:5000/api/chats/ai", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    text,
+                    history: messages, // Send the full chat history
+                }),
+            });
+            const data = await response.json();
+            console.log(data)
+            const botResponse = { sender: "bot", text: data.text || "Sorry, I couldn't get a response from the AI." };
+
             setMessages((prevMessages) => {
                 setChatHistory((prevHistory) =>
                     prevHistory.map((chat) =>
@@ -69,9 +83,24 @@ const App = () => {
                 );
                 return [...prevMessages, botResponse];
             });
-            setIsBotThinking(false);
-        }, 1000);
+        } catch (error) {
+            console.error("Error fetching AI response:", error);
+            const botResponse = { sender: "bot", text: "Sorry, there was an error connecting to the AI." };
+            setMessages((prevMessages) => {
+                setChatHistory((prevHistory) =>
+                    prevHistory.map((chat) =>
+                        chat.id === prevHistory[prevHistory.length - 1].id
+                            ? { ...chat, messages: [...chat.messages, botResponse] }
+                            : chat
+                    )
+                );
+                return [...prevMessages, botResponse];
+            });
+        }
+
+        setIsBotThinking(false);
     };
+
 
     const handleNewChat = () => {
         setMessages([]);
