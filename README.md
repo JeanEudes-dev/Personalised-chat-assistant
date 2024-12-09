@@ -40,7 +40,7 @@ Ensure you have the following:
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-username/chat-assistant.git
+git clone https://github.com/JeanEudes-dev/chat-assistant.git
 cd chat-assistant
 ```
 
